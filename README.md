@@ -5,7 +5,7 @@
 python cnn.py
 ```
 ## Result
-![result](./pic/res.png)
+![result](./pic/update.png)
 
 
 
