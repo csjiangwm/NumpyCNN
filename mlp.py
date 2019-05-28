@@ -59,17 +59,28 @@ def batch_norm(x, gamma, beta, epsilon=1e-6):
     return y, x_hat, var, mean
     
 def batch_norm_backward(dz, x, x_hat, var, mean, gamma, epsilon=1e-6):
-    axis = 0 if len(x.shape)==2 else (0,2,3)
-    n = len(x)
+#    axis = 0 if len(x.shape)==2 else (0,2,3)
+#    n = len(x)
+    if len(x.shape) == 2:
+        n = len(x)
+        axis = 0
+    else:
+        n,c,h,w = x.shape
+        axis=(0,2,3)
     center = x - mean
     stable_var = var + epsilon
     dgamma = np.sum(dz*x_hat, axis=axis, keepdims=True)
     dbeta = np.sum(dz, axis=axis, keepdims=True)
     dx_hat = dz * gamma
     dvar = np.sum(dx_hat*center*stable_var**(-3/2)/-2, axis=axis, keepdims=True)
-    dmean = np.sum(-dx_hat/np.sqrt(stable_var), axis=axis, keepdims=True) + \
-            dvar*(-2)*np.sum(center, axis=axis, keepdims=True)/n
-    dx = dx_hat/np.sqrt(stable_var) + dvar*center*2/n + dmean/n
+#    dmean = np.sum(-dx_hat/np.sqrt(stable_var), axis=axis, keepdims=True) + \
+#            dvar*(-2)*np.sum(center, axis=axis, keepdims=True)/n
+#    dx = dx_hat/np.sqrt(stable_var) + dvar*center*2/n + dmean/n
+    dmean = np.sum(-dx_hat/np.sqrt(stable_var), axis=axis, keepdims=True)
+    if len(x.shape) == 2:
+        dx = dx_hat/np.sqrt(stable_var) + dvar*center*2/n + dmean/n
+    else:
+        dx = dx_hat/np.sqrt(stable_var) + dvar*center*2/(n*h*w) + dmean/(n*h*w)
     return dx, dgamma, dbeta
     
 def dropout(x, drop_prob=0.5):
